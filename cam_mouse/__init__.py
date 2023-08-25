@@ -35,7 +35,8 @@ def main():
         
         if not ret:
             continue
-
+        
+        frame = cv2.flip(frame, 1)
         rgbFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = hands.process(rgbFrame)
         
