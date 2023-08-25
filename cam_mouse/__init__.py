@@ -22,8 +22,14 @@ def main():
     hand_undetected_count = 0
     consecutive_frames_threshold = 5
     max_consecutive_frames_without_hand = 7
-    cap = cv2.VideoCapture(0)
     
+    cap = cv2.VideoCapture(0)
+    cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('X','2','6','4'))
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    cap.set(cv2.CAP_PROP_FPS, 30)
+    cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+
     while True:
         ret, frame = cap.read()
         
@@ -32,7 +38,7 @@ def main():
 
         rgbFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = hands.process(rgbFrame)
-
+        
         if results.multi_hand_landmarks:
             hand_detected_count += 1
             hand_undetected_count = 0
@@ -44,18 +50,17 @@ def main():
                     height, width, _ = frame.shape
                     x, y = int(point.x * width), int(point.y * height)
                     cv2.circle(frame, (x, y), 5, (0, 255, 0), -1)
-            if is_debug:
-                cv2.imshow("Hand Tracking", frame)
-
-            if cv2.waitKey(10) & 0xFF == ord('q'):
-                break
         else:
             hand_detected_count = 0
             hand_undetected_count += 1
             if hand_undetected_count >= max_consecutive_frames_without_hand:
                 logging.info("Hand Out of View")
+        if is_debug:
+            cv2.imshow("Hand Tracking", frame)
 
-            
+        if cv2.waitKey(10) & 0xFF == ord('q'):
+            break
+
     cap.release()
     cv2.destroyAllWindows()
 
