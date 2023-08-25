@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "cam-mouse"
+version = "0.1.0"
+description = ""
+authors = ["KitsuneSemCalda <arthuramagalhaes1312@gmail.com>"]
+readme = "README.md"
+packages = [{include = "cam_mouse"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+opencv-python = "^4.8.0.76"
+mediapipe = "^0.10.3"
+pyautogui = "^0.9.54"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
