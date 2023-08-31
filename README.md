@@ -2,6 +2,12 @@
 
 Cam - Mouse é um projeto Python que permite controlar o cursor do mouse usando gestos capturados por uma webcam. O projeto utiliza as bibliotecas OpenCV, Mediapipe e PyAutoGUI para realizar a detecção de mãos, interpretar os gestos e interagir com o sistema operacional para realizar ações do mouse.
 
+## WARNING!
+
+Do you need pratice from using this project.
+
+This gestures used is [here](https://github.com/ahmed-0egy/Hand-Gesture-Recognition-for-Cursor-Controlling/tree/main/gestures)
+
 ## Bibliotecas Necessárias
 
 - [Python](https://www.python.org/)
