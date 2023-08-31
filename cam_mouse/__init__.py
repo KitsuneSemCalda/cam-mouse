@@ -1,69 +1,53 @@
+#!/usr/bin/env python3
+
 import cv2
-import sys
 import mediapipe as mp
 import logging
+from controller import GestureManager
 
-is_debug = False
+logging.basicConfig(level=logging.DEBUG)
 
-if len(sys.argv) > 1:
-    if sys.argv[1] == 'debug':
-        is_debug = True
-
-if is_debug:
-    logging.basicConfig(level=logging.DEBUG)
-else:
-    logging.basicConfig(filename="gesture_control.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+manager = GestureManager()
 
 mp_hands = mp.solutions.hands
+mp_draw = mp.solutions.drawing_utils
+
 hands = mp_hands.Hands()
 
-def main():
-    hand_detected_count = 0
-    hand_undetected_count = 0
-    consecutive_frames_threshold = 5
-    max_consecutive_frames_without_hand = 7
-    
-    cap = cv2.VideoCapture(0)
-    cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('X','2','6','4'))
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-    cap.set(cv2.CAP_PROP_FPS, 30)
-    cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+cap = cv2.VideoCapture(0)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+logging.info("[OK]: Cam Mouse inicialized")
 
-    while True:
-        ret, frame = cap.read()
-        
-        if not ret:
-            continue
-        
-        frame = cv2.flip(frame, 1)
-        rgbFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = hands.process(rgbFrame)
-        
-        if results.multi_hand_landmarks:
-            hand_detected_count += 1
-            hand_undetected_count = 0
-            if hand_detected_count >= consecutive_frames_threshold:
-                logging.info("Hand Detected")
+while True:
+    ret, frame = cap.read()
 
-            for landmarks in results.multi_hand_landmarks:
-                for point in landmarks.landmark:
-                    height, width, _ = frame.shape
-                    x, y = int(point.x * width), int(point.y * height)
-                    cv2.circle(frame, (x, y), 5, (0, 255, 0), -1)
-        else:
-            hand_detected_count = 0
-            hand_undetected_count += 1
-            if hand_undetected_count >= max_consecutive_frames_without_hand:
-                logging.info("Hand Out of View")
-        if is_debug:
-            cv2.imshow("Hand Tracking", frame)
+    if not ret:
+        continue
 
-        if cv2.waitKey(10) & 0xFF == ord('q'):
+    frame = cv2.flip(frame, 1)
+    rgbFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = hands.process(rgbFrame)
+
+    if results.multi_hand_landmarks:
+        if len(results.multi_hand_landmarks) == 1:
+            manager.hand_Landmarks = results.multi_hand_landmarks[0]
+        mp_draw.draw_landmarks(frame, manager.hand_Landmarks, mp_hands.HAND_CONNECTIONS)
+        manager.update_fingers_status()
+        manager.cursor_moving()
+        manager.detect_scrolling()
+        manager.detect_zoomming()
+        manager.detect_clicking()
+        manager.detect_dragging()
+        cv2.imshow('Hand Tracking', frame)
+        if cv2.waitKey(5) & 0xff == 27:
             break
 
-    cap.release()
-    cv2.destroyAllWindows()
+    cv2.imshow('Hand Tracking', frame)
+    if cv2.waitKey(10) & 0xff == ord('q'):
+        break
 
-if __name__ == "__main__":
-    main()
+cap.release()
+cv2.destroyAllWindows()
+
